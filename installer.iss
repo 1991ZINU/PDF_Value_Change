@@ -1,6 +1,6 @@
 [Setup]
 AppName=PDF_Value_Change
-AppVersion=1.0.0
+AppVersion=1.0.1
 DefaultDirName={pf}\PDF_Value_Change
 DefaultGroupName=PDF_Value_Change
 OutputDir=output

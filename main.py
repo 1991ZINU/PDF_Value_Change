@@ -30,7 +30,7 @@ def main():
     parser.add_argument(
         "--version",
         action="version",
-        version="PDF 표 편집기 v1.0",
+        version="PDF 표 편집기 v1.0.1",
     )
 
     args = parser.parse_args()
