@@ -1,0 +1,60 @@
+name: Build and Release Installer
+
+on:
+  push:
+    tags:
+      - 'v*' # v1.0.0, v1.0.1 등의 태그가 푸시되면 워크플로우가 실행됩니다.
+
+permissions:
+  contents: write # GitHub 릴리즈를 작성하고 파일을 업로드하기 위해 권한을 명시적으로 부여합니다.
+
+jobs:
+  build:
+    name: Build Installer
+    runs-on: windows-latest
+
+    steps:
+      # 1. 레포지토리 소스코드를 체크아웃합니다.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. 파이썬 환경을 구성합니다.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' # 패키지 다운로드 속도를 위해 캐시를 적용합니다.
+
+      # 3. 필요한 라이브러리 및 PyInstaller 설치
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      # 4. PyInstaller를 실행하여 exe 실행 파일을 빌드합니다.
+      - name: Build Executable
+        run: |
+          pyinstaller --noconfirm PDF_Value_Change.spec
+
+      # 5. Inno Setup을 사용해 설치 파일(Setup.exe)을 컴파일합니다.
+      # (GitHub의 windows-latest 가상환경에는 Inno Setup(ISCC)이 이미 설치되어 경로가 지정되어 있습니다.)
+      - name: Compile Installer with Inno Setup
+        run: |
+          iscc installer.iss
+
+      # 6. GitHub Release를 생성하고 생성한 설치 파일을 업로드합니다.
+      - name: Create GitHub Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/PDF_Value_Change_Setup.exe
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## PDF 표 편집기 ${{ github.ref_name }} 릴리즈
+            
+            자동화된 빌드를 통해 생성된 설치 프로그램입니다.
+            다운로드한 설치 파일을 실행하여 프로그램을 설치하고 사용해 보세요.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
